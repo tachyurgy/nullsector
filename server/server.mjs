@@ -27,7 +27,8 @@ const WEB = path.join(__dirname, '..', 'web');
 const PORT = process.env.PORT || 8787;
 
 // ---- db --------------------------------------------------------------------
-const db = new DatabaseSync(path.join(__dirname, 'ladder.db'));
+const DB_FILE = process.env.DB_PATH || path.join(__dirname, 'ladder.db');
+const db = new DatabaseSync(DB_FILE);
 db.exec(`
   CREATE TABLE IF NOT EXISTS daemons(
     id INTEGER PRIMARY KEY,
@@ -142,6 +143,7 @@ async function api(req, res, url) {
 http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://x');
+    if (url.pathname === '/up') { res.writeHead(200, { 'content-type': 'text/plain' }); return res.end('ok'); }
     if (url.pathname.startsWith('/api/')) return await api(req, res, url);
     return await serveStatic(req, res);
   } catch (e) { send(res, 400, { error: String(e.message || e) }); }
