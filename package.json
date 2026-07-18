@@ -1,0 +1,11 @@
+{
+  "name": "nullsector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "NULLSECTOR — core-combat programming game. Client-side VM, tiny ghost/ladder server.",
+  "scripts": {
+    "test": "node server/selftest.mjs",
+    "serve": "node server/server.mjs"
+  }
+}

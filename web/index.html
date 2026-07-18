@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NULLSECTOR — core-combat programming game</title>
+<meta name="description" content="Write a combat daemon in a tiny assembly language, inject it into a 256-cell memory sector, and duel the ghosts of rival pilots for rank.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0e15'/><rect x='6' y='6' width='8' height='8' rx='2' fill='%2322d3ee'/><rect x='18' y='18' width='8' height='8' rx='2' fill='%23f472b6'/><circle cx='22' cy='10' r='3' fill='%23ff5468'/></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">◤ NULL<span class="accent">SECTOR</span></span>
+    <span class="sub">core-combat // duel the ghosts</span>
+  </div>
+  <nav class="tabs">
+    <button data-mode="manual">MANUAL</button>
+    <button data-mode="arena">ARENA</button>
+    <button data-mode="gauntlet">GAUNTLET</button>
+    <button data-mode="ladder">LADDER</button>
+  </nav>
+  <button id="sound" class="icon-btn" title="toggle sound">🔊</button>
+</header>
+
+<main class="deck">
+  <!-- LEFT: editor -->
+  <section class="pane editor">
+    <div class="editor-head">
+      <input id="wname" class="wname" spellcheck="false" autocomplete="off" placeholder="daemon name">
+      <div class="editor-btns">
+        <div class="menu-wrap">
+          <button id="btn-load" class="btn ghost">Load ▾</button>
+          <div id="load-menu" class="menu" hidden></div>
+        </div>
+        <button id="btn-save" class="btn ghost">Save</button>
+        <button id="btn-share" class="btn ghost">Share</button>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div id="gutter" class="gutter"></div>
+      <textarea id="code" class="code" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off"></textarea>
+    </div>
+    <div id="status" class="status">…</div>
+    <div id="errors" class="errors"></div>
+  </section>
+
+  <!-- CENTER: the sector -->
+  <section class="pane sector-pane">
+    <div class="sector-frame">
+      <canvas id="sector" class="sector"></canvas>
+      <div id="banner" class="banner" hidden></div>
+    </div>
+    <div class="transport">
+      <button id="btn-back" class="t-btn" title="step back">⏮</button>
+      <button id="btn-play" class="t-btn play" title="play/pause">▶</button>
+      <button id="btn-step" class="t-btn" title="step forward">⏭</button>
+      <input id="scrub" class="scrub" type="range" min="0" max="1" value="0">
+      <button id="btn-end" class="t-btn" title="jump to end">⇥</button>
+      <span id="cyc" class="cyc">0 / 0</span>
+    </div>
+    <div class="speeds">
+      <span class="lbl">speed</span>
+      <button data-speed="18" class="chip">slow</button>
+      <button data-speed="45" class="chip active">1×</button>
+      <button data-speed="140" class="chip">3×</button>
+      <button data-speed="600" class="chip">max</button>
+    </div>
+    <div class="hud">
+      <div id="hud1" class="hud-card you"><div class="hud-name">YOU</div><div class="regs"></div><div class="act">—</div></div>
+      <div id="hud2" class="hud-card enemy"><div class="hud-name">ENEMY</div><div class="regs"></div><div class="act">—</div></div>
+    </div>
+  </section>
+
+  <!-- RIGHT: context -->
+  <aside class="pane context">
+    <!-- MANUAL -->
+    <div class="ctx" data-ctx="manual">
+      <h2>How it works</h2>
+      <p>Your <b>daemon</b> is a little program dropped into a ring of <b>256 memory cells</b>. Two daemons run one instruction at a time, taking turns. There is exactly one way to die:</p>
+      <p class="rule">☠ Your instruction pointer lands on something that isn’t real code — a <span class="mine-t">MINE</span> or an unwritten <span class="void-t">VOID</span> cell. The survivor wins.</p>
+      <p>Every address is <b>relative to where you are right now</b>. <code>BOMB 7</code> drops a mine 7 cells ahead. Memory wraps, so there are no edges. No stacks, no spawning — just one walker with four registers <code>A B C D</code>.</p>
+      <h3>Sensing the enemy</h3>
+      <p><code>SCAN</code> sweeps ahead and sets two read-only registers: <code>FOUND</code> (0 clear · 1 enemy · 2 mine) and <code>AT</code> — a <em>live pointer</em> to the target. <code>BOMB AT</code> always hits it, from wherever you are.</p>
+      <h3>Instruction set</h3>
+      <div id="isa" class="isa"></div>
+      <h3>Three ways to win</h3>
+      <ul class="strat">
+        <li><b>Bomber</b> — carpet the ring with mines. Fast and mean; just don’t step on your own.</li>
+        <li><b>Scanner</b> — hunt the enemy’s signature, then strike <code>AT</code>. Beats sitters.</li>
+        <li><b>Turtle / Imp</b> — never die. Force a stalemate, or crawl forever with <code>COPY 0, 1</code>.</li>
+      </ul>
+    </div>
+
+    <!-- ARENA -->
+    <div class="ctx" data-ctx="arena" hidden>
+      <h2>Arena</h2>
+      <p class="muted">Spar your daemon against any opponent and watch the replay.</p>
+      <label class="fld">Opponent
+        <select id="opp" class="input"></select>
+      </label>
+      <p id="opp-blurb" class="blurb"></p>
+      <button id="btn-fight" class="btn primary wide">▶ FIGHT (best of 9)</button>
+      <div id="arena-record" class="record"></div>
+    </div>
+
+    <!-- GAUNTLET -->
+    <div class="ctx" data-ctx="gauntlet" hidden>
+      <h2>Gauntlet</h2>
+      <p class="muted">Clear each foe (win the majority) to unlock the next. Progress saves locally.</p>
+      <div id="gauntlet-list" class="gauntlet-list"></div>
+      <div id="gauntlet-record" class="record"></div>
+    </div>
+
+    <!-- LADDER -->
+    <div class="ctx" data-ctx="ladder" hidden>
+      <h2>Ghost Ladder</h2>
+      <p class="muted">Deploy a daemon and your client fights every rival’s ghost. Elo is global; results are deterministic and auditable.</p>
+      <label class="fld">Pilot handle
+        <input id="handle" class="input" spellcheck="false" placeholder="your callsign">
+      </label>
+      <button id="btn-deploy" class="btn primary wide">⬆ DEPLOY TO LADDER</button>
+      <div id="deploy-status" class="record"></div>
+      <div id="ladder-table" class="ladder"></div>
+      <p class="muted small">Click any daemon to spar it.</p>
+    </div>
+  </aside>
+</main>
+
+<div id="toast" class="toast"></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
