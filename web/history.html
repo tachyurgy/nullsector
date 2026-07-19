@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ghosts in the Machine — a history of combat programming · NULLSECTOR</title>
+<meta name="description" content="An ode to the programming battle game — sixty-five years of code written to kill code, from Darwin at Bell Labs in 1961 to Core War, Robocode, and the games we play today.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0e15'/><rect x='6' y='6' width='8' height='8' rx='2' fill='%2322d3ee'/><rect x='18' y='18' width='8' height='8' rx='2' fill='%23f472b6'/><circle cx='22' cy='10' r='3' fill='%23ff5468'/></svg>">
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ---- article layout (long-form; overrides the deck's fixed-height body) ---- */
+html,body{height:auto}
+body{overflow-x:hidden; overflow-y:auto}
+.doc-top{position:sticky; top:0}
+.doc-top .tablink{font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--dim);
+  background:transparent; border:1px solid transparent; padding:7px 14px; border-radius:9px; cursor:pointer;
+  text-decoration:none; transition:.15s; display:inline-flex; align-items:center; gap:7px}
+.doc-top .tablink:hover{color:var(--text); background:rgba(255,255,255,.03)}
+.doc-top .tablink.play{margin-left:auto; color:var(--you); border-color:var(--line2);
+  background:rgba(34,211,238,.08); box-shadow:0 0 18px rgba(34,211,238,.15) inset}
+.doc-top .tablink.play:hover{box-shadow:0 0 26px rgba(34,211,238,.28) inset}
+
+.wrap{max-width:920px; margin:0 auto; padding:0 22px 120px}
+.article{position:relative; z-index:1}
+.article p{font-size:15.5px; line-height:1.72; color:#c3d2e6; margin:0 0 16px}
+.article p.lede{font-size:18px; line-height:1.7; color:var(--text)}
+.article a.inl{color:var(--you); text-decoration:none; border-bottom:1px solid rgba(34,211,238,.35)}
+.article a.inl:hover{border-bottom-color:var(--you)}
+.article b{color:#e7f0fb} .article em{color:#dfe8f4}
+.kicker{font-family:var(--mono); font-size:11px; letter-spacing:.34em; text-transform:uppercase; color:var(--dim2)}
+
+/* hero */
+.hero{padding:70px 0 26px; text-align:center; position:relative}
+.hero .ring-wrap{width:min(420px,74vw); margin:8px auto 26px}
+.hero h1{font-family:var(--mono); font-weight:700; letter-spacing:.02em; line-height:1.02;
+  font-size:clamp(34px,7vw,64px); margin:14px 0 10px; color:#eafcff;
+  text-shadow:0 0 40px rgba(34,211,238,.28)}
+.hero h1 .rose{color:var(--enemy); text-shadow:0 0 40px rgba(244,114,182,.35)}
+.hero .dek{font-size:clamp(15px,2.4vw,19px); color:var(--dim); max-width:640px; margin:0 auto; line-height:1.6}
+.hero .byline{margin-top:22px; font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--dim2)}
+
+/* section furniture */
+section.era{margin:64px 0 0; scroll-margin-top:80px}
+.era-head{display:flex; align-items:baseline; gap:16px; margin:0 0 18px; border-bottom:1px solid var(--line); padding-bottom:14px; flex-wrap:wrap}
+.era-year{font-family:var(--mono); font-size:clamp(30px,5vw,44px); font-weight:700; color:var(--you);
+  line-height:1; text-shadow:0 0 24px rgba(34,211,238,.3)}
+.era-year.rose{color:var(--enemy); text-shadow:0 0 24px rgba(244,114,182,.3)}
+.era-year.amber{color:var(--amber); text-shadow:0 0 24px rgba(240,180,41,.3)}
+.era-year.lime{color:var(--lime); text-shadow:0 0 24px rgba(163,230,53,.3)}
+.era-title{font-size:clamp(19px,3vw,26px); color:#eafcff; font-family:var(--sans); font-weight:600; letter-spacing:.01em; margin:0}
+.era-sub{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim2); width:100%}
+
+/* figures */
+figure{margin:26px 0; background:linear-gradient(180deg,var(--panel),var(--bg2));
+  border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--glow); padding:20px; overflow:hidden}
+figure svg{display:block; width:100%; height:auto}
+figcaption{margin-top:14px; font-size:12.5px; color:var(--dim); font-style:italic; line-height:1.55; text-align:center}
+figcaption b{font-style:normal}
+
+/* code blocks */
+pre.rc{background:var(--bg); border:1px solid var(--line); border-left:3px solid var(--lime);
+  border-radius:0 9px 9px 0; padding:14px 16px; overflow-x:auto; margin:20px 0;
+  font-family:var(--mono); font-size:12.5px; line-height:1.62; color:var(--text)}
+pre.rc .cm{color:var(--dim2)} pre.rc .op{color:var(--lime)} pre.rc .lb{color:var(--enemy)}
+.pull{border-left:3px solid var(--enemy); padding:6px 0 6px 20px; margin:26px 0; font-size:20px;
+  line-height:1.5; color:#eaf1fb; font-family:var(--sans)}
+.pull span{color:var(--enemy)}
+
+/* warrior card grid */
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin:24px 0}
+.wcard{background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:15px; transition:.15s}
+.wcard:hover{border-color:var(--line2); transform:translateY(-2px)}
+.wcard .glyph{width:44px; height:44px; margin-bottom:10px}
+.wcard h4{margin:0 0 2px; font-family:var(--mono); font-size:14px; letter-spacing:.03em; color:#eafcff}
+.wcard .tag{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--amber); margin-bottom:8px}
+.wcard p{font-size:13px; line-height:1.55; color:var(--dim); margin:0}
+.wcard code{font-size:11.5px}
+
+/* modern grid */
+.mgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; margin:24px 0}
+.mcard{background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:16px}
+.mcard .yr{font-family:var(--mono); font-size:11px; color:var(--you); letter-spacing:.1em}
+.mcard h4{margin:3px 0 6px; font-size:15px; color:#eafcff; font-family:var(--sans); font-weight:600}
+.mcard p{font-size:13px; line-height:1.55; color:var(--dim); margin:0}
+
+/* closing CTA */
+.cta{margin:70px 0 0; text-align:center; background:
+   radial-gradient(600px 260px at 50% 0%, rgba(34,211,238,.1), transparent 70%);
+  border:1px solid var(--line2); border-radius:16px; padding:44px 26px}
+.cta h3{font-family:var(--sans); font-size:clamp(20px,3vw,28px); color:#eafcff; margin:0 0 10px; text-transform:none; letter-spacing:0}
+.cta p{max-width:560px; margin:0 auto 22px; color:var(--dim); font-size:15px}
+.cta .enter{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:14px; letter-spacing:.08em;
+  text-decoration:none; color:#eafcff; padding:14px 26px; border-radius:11px; border:1px solid var(--you);
+  background:linear-gradient(180deg,rgba(34,211,238,.22),rgba(34,211,238,.06)); text-shadow:0 0 10px rgba(34,211,238,.5); transition:.15s}
+.cta .enter:hover{box-shadow:0 0 30px rgba(34,211,238,.32); transform:translateY(-1px)}
+
+footer.doc{margin-top:60px; padding-top:22px; border-top:1px solid var(--line); text-align:center;
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim2)}
+footer.doc a{color:var(--dim); text-decoration:none} footer.doc a:hover{color:var(--you)}
+
+/* mini in-page nav */
+.jump{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:30px 0 0}
+.jump a{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--dim); text-decoration:none;
+  border:1px solid var(--line); border-radius:20px; padding:6px 13px; transition:.15s}
+.jump a:hover{color:var(--you); border-color:var(--line2); background:rgba(34,211,238,.06)}
+
+@media (max-width:560px){
+  .hero{padding:44px 0 10px}
+  section.era{margin-top:48px}
+  figure{padding:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  [data-anim]{animation:none !important}
+  .hero .ip1, .hero .ip2, .imp-run{animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar doc-top">
+  <div class="brand">
+    <a href="index.html" style="text-decoration:none"><span class="logo">◤ NULL<span class="accent">SECTOR</span></span></a>
+    <span class="sub">field manual // the lineage</span>
+  </div>
+  <nav class="tabs" style="margin-left:auto; gap:6px">
+    <a class="tablink play" href="index.html">◄ ENTER THE SECTOR</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<article class="article">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="kicker">An ode to the programming battle game</div>
+    <div class="ring-wrap">
+      <!-- animated memory ring: two instruction pointers orbit a wrapping core -->
+      <svg viewBox="0 0 300 300" role="img" aria-label="Two instruction pointers circling a ring of memory cells">
+        <defs>
+          <radialGradient id="hg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#0e1524"/><stop offset="100%" stop-color="#080b12"/>
+          </radialGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle cx="150" cy="150" r="150" fill="url(#hg)"/>
+        <!-- 64 memory cells arranged on a ring -->
+        <g id="cells"></g>
+        <circle cx="150" cy="150" r="118" fill="none" stroke="#1b2740" stroke-width="1"/>
+        <!-- orbiting IPs -->
+        <g class="ip1" style="transform-origin:150px 150px" data-anim>
+          <circle cx="150" cy="32" r="6" fill="#22d3ee" filter="url(#glow)"/>
+        </g>
+        <g class="ip2" style="transform-origin:150px 150px" data-anim>
+          <circle cx="150" cy="268" r="6" fill="#f472b6" filter="url(#glow)"/>
+        </g>
+        <text x="150" y="146" text-anchor="middle" font-family="var(--mono)" font-size="12" fill="#54657f" letter-spacing="3">CORE</text>
+        <text x="150" y="166" text-anchor="middle" font-family="var(--mono)" font-size="21" fill="#cfdcec" letter-spacing="1" font-weight="700">256</text>
+      </svg>
+    </div>
+    <h1>Ghosts in the <span class="rose">Machine</span></h1>
+    <p class="dek">Sixty-five years of code written to kill code. This is the story of the programming battle game — the oldest game programmers ever played — and of the little ring of memory where two programs enter and one program leaves.</p>
+    <div class="jump">
+      <a href="#darwin">1961 · Darwin</a>
+      <a href="#corewar">1984 · Core War</a>
+      <a href="#bestiary">The Bestiary</a>
+      <a href="#robots">The Robots</a>
+      <a href="#modern">The Modern Age</a>
+      <a href="#ode">Why It Endures</a>
+    </div>
+  </div>
+
+  <p class="lede">Most games ask you to play them. A programming battle game asks you to <em>write a player</em> — a small autonomous program — and then send it in alone, with no hand on the controls, to fight the programs other people wrote. You don't move a piece. You author a mind, release it, and watch it live or die by the logic you gave it. Win or lose, you learn something true about how you think.</p>
+
+  <p>It is a strange and beautiful corner of computing, and an old one. Long before esports, before AI agents, before "self-play," programmers were already staging duels between little machine-code creatures and gathering around a screen to watch. The genre has been reinvented a dozen times — on mainframes, on the Apple II, on the Macintosh, in Java, in the browser — but its heart has never changed: <b>the elegance of a program that must survive on its own.</b></p>
+
+  <!-- ================= DARWIN ================= -->
+  <section class="era" id="darwin">
+    <div class="era-head">
+      <span class="era-year">1961</span>
+      <h2 class="era-title">Darwin, and the first kill</h2>
+      <span class="era-sub">Bell Labs · IBM 7090 · the primordial arena</span>
+    </div>
+
+    <p>The story begins in August 1961, in the machine room at Bell Telephone Laboratories, on an <b>IBM 7090</b> mainframe. Three researchers — <b>Victor Vyssotsky</b>, <b>Robert Morris Sr.</b>, and <b>Doug McIlroy</b> — invented a game they called <a class="inl" href="https://en.wikipedia.org/wiki/Darwin_(programming_game)" target="_blank" rel="noopener">Darwin</a>. (McIlroy would later give the world the Unix pipe; Morris would help write early Unix security, and his son would author the 1988 internet worm — the lineage of this genre runs straight through the lineage of computing itself.)</p>
+
+    <p>Darwin was refereed by a program the players called the <b>umpire</b>. It set aside a stretch of memory — the <b>arena</b> — and loaded in small programs the players had written in raw 7090 machine code. Each program was an <em>organism</em>. Through the umpire an organism could probe neighboring memory, try to <em>kill</em> whatever it found there, and claim empty space for copies of itself. Reproduce faster than you are killed and you inherit the arena.</p>
+
+    <figure>
+      <svg viewBox="0 0 640 200" role="img" aria-label="The Darwin arena: two species of organisms competing to fill a strip of memory">
+        <defs>
+          <linearGradient id="arenaBg" x1="0" x2="1"><stop offset="0" stop-color="#0b1120"/><stop offset="1" stop-color="#0e1524"/></linearGradient>
+        </defs>
+        <rect x="0" y="0" width="640" height="200" fill="url(#arenaBg)" rx="8"/>
+        <text x="20" y="30" font-family="var(--mono)" font-size="11" fill="#54657f" letter-spacing="2">THE ARENA — a strip of core memory</text>
+        <!-- memory strip -->
+        <g id="darwin-strip"></g>
+        <!-- umpire -->
+        <rect x="250" y="150" width="140" height="30" rx="6" fill="#111a2b" stroke="#26365a"/>
+        <text x="320" y="170" text-anchor="middle" font-family="var(--mono)" font-size="12" fill="#f0b429" letter-spacing="2">UMPIRE</text>
+        <line x1="120" y1="120" x2="290" y2="150" stroke="#26365a" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="520" y1="120" x2="350" y2="150" stroke="#26365a" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="20" y="128" font-family="var(--mono)" font-size="10" fill="#22d3ee">species A probes ▸ kills ▸ copies</text>
+        <text x="430" y="128" font-family="var(--mono)" font-size="10" fill="#f472b6">species B probes ◂ kills ◂ copies</text>
+      </svg>
+      <figcaption><b>Darwin (1961).</b> Two machine-code species reproduce into a shared strip of memory, mediated by the umpire — probe a cell, kill what's there, plant a copy of yourself. The oldest known program-vs-program game.</figcaption>
+    </figure>
+
+    <p>It lasted only a few weeks. Robert Morris studied the dynamics, went home, and came back with an organism nobody could beat — a program so efficient at defending and reproducing that the game simply ended. That is the genre in miniature already: a puzzle that looks open-ended until someone finds the move that closes it, and then the frontier moves on. Darwin was never published as a product. It survived as a story, told and retold — and twenty-three years later, that story lit a fuse.</p>
+  </section>
+
+  <!-- ================= CORE WAR ================= -->
+  <section class="era" id="corewar">
+    <div class="era-head">
+      <span class="era-year rose">1984</span>
+      <h2 class="era-title">Core War — the genre gets its name</h2>
+      <span class="era-sub">A. K. Dewdney &amp; D. G. Jones · Redcode · the MARS</span>
+    </div>
+
+    <p>In <b>May 1984</b>, the mathematician and computer scientist <b>A. K. Dewdney</b> devoted his "Computer Recreations" column in <em>Scientific American</em> to a game he and <b>D. G. Jones</b> had formalized that spring. They called it <a class="inl" href="https://en.wikipedia.org/wiki/Core_War" target="_blank" rel="noopener">Core War</a>, after <em>core</em> — the woven magnetic-ring memory of the mainframe era. Dewdney's column reached hundreds of thousands of readers, and a subculture ignited overnight. Where Darwin was a legend passed between insiders, Core War was a game anyone with a computer could build and play. It gave the genre its vocabulary — and, for the first time, a name.</p>
+
+    <p>The setup is deceptively simple. Two programs — now called <b>warriors</b> — are written in an abstract assembly language named <b>Redcode</b> and loaded at random into a single ring of memory. A virtual machine, the <b>MARS</b> (Memory Array Redcode Simulator), runs them one instruction at a time, turn by turn. The memory is <em>circular</em>: in Dewdney's original it held 8000 cells numbered 0 to 7999, and cell 8000 was simply cell 0 again. There are no walls to back into. A warrior wins when its opponent executes an illegal instruction and dies.</p>
+
+    <figure>
+      <svg viewBox="0 0 640 360" role="img" aria-label="A MARS core dump: a grid of memory cells showing two warriors, live code, mines, and empty void cells">
+        <rect x="0" y="0" width="640" height="360" fill="#080b12" rx="8"/>
+        <text x="20" y="28" font-family="var(--mono)" font-size="11" fill="#54657f" letter-spacing="2">MARS — CORE DUMP (mid-battle)</text>
+        <g id="coredump"></g>
+        <!-- legend -->
+        <g font-family="var(--mono)" font-size="11" transform="translate(20,332)">
+          <rect x="0" y="-9" width="12" height="12" rx="2" fill="#22d3ee"/><text x="18" y="1" fill="#7f93ad">warrior A</text>
+          <rect x="120" y="-9" width="12" height="12" rx="2" fill="#f472b6"/><text x="138" y="1" fill="#7f93ad">warrior B</text>
+          <rect x="240" y="-9" width="12" height="12" rx="2" fill="#ff5468"/><text x="258" y="1" fill="#7f93ad">mine (DAT)</text>
+          <rect x="360" y="-9" width="12" height="12" rx="2" fill="#0e1524" stroke="#1b2740"/><text x="378" y="1" fill="#7f93ad">void / empty</text>
+          <circle cx="486" cy="-3" r="6" fill="none" stroke="#a3e635" stroke-width="2"/><text x="500" y="1" fill="#7f93ad">live pointer</text>
+        </g>
+      </svg>
+      <figcaption><b>The core.</b> Both warriors share one ring of memory. Blue and pink cells are living code; red cells are <span style="color:var(--mine)">mines</span> (a <code>DAT</code> instruction, instant death to whoever executes it); dark cells are untouched void. Bomb the enemy before an errant jump lands you on your own trap.</figcaption>
+    </figure>
+
+    <p>An entire discipline grew up inside those constraints. The <b>International Core War Society</b> formed in 1985 to standardize Redcode so warriors could battle across machines. The <b>First International Core War Tournament</b> ran in September 1986 at The Computer Museum in Boston — 31 entries fed into the memory of borrowed office PCs. It was won by a self-replicating warrior called <b>Mice</b>, written by <b>Chip Wendell</b>, who took home a trophy built around a genuine core-memory board salvaged from a CDC 6600. People were, quite literally, competing for a piece of the machine the game was named after.</p>
+
+    <p>And the warriors themselves became astonishingly small poems. The most famous is the <b>Imp</b>, Dewdney's own, and it is a single instruction:</p>
+
+    <pre class="rc"><span class="cm">; IMP — the immortal. One line. It copies itself</span>
+<span class="cm">; one cell ahead, forever, crawling around the ring.</span>
+        <span class="op">MOV</span> 0, 1     <span class="cm">; copy THIS cell to the next, then step into it</span></pre>
+
+    <p>That's the whole program. <code>MOV 0, 1</code> copies the current cell to the cell just ahead — which is <em>itself</em> — and then execution steps forward into the fresh copy and does it again. The Imp is a wave that walks the entire core and cannot quite be killed, only outpaced. From that one gesture the community derived <b>imp-rings</b>, <b>imp-spirals</b>, and a whole zoo of strategies. Which brings us to the bestiary.</p>
+  </section>
+
+  <!-- ================= BESTIARY ================= -->
+  <section class="era" id="bestiary">
+    <div class="era-head">
+      <span class="era-year amber">The</span>
+      <h2 class="era-title">A bestiary of warriors</h2>
+      <span class="era-sub">bomber · scanner · replicator · imp · vampire</span>
+    </div>
+
+    <p>Because the core is symmetric and blind, no single tactic wins. Instead the archetypes fall into a rock–paper–scissors triangle that Core War players have argued about for forty years: broadly, <b>replicators (Paper)</b> outlast <b>bombers (Stone)</b>, bombers shred <b>scanners (Scissors)</b>, and scanners pick apart replicators. Master one and you become food for another. Here are the creatures.</p>
+
+    <div class="cards">
+      <div class="wcard">
+        <svg class="glyph" viewBox="0 0 44 44" aria-hidden="true"><g fill="none" stroke="#ff5468" stroke-width="2.4"><circle cx="22" cy="10" r="4"/><path d="M22 14v10M14 30l8-6 8 6" stroke-linecap="round"/></g><g fill="#ff5468"><circle cx="10" cy="36" r="2.5"/><circle cx="22" cy="36" r="2.5"/><circle cx="34" cy="36" r="2.5"/></g></svg>
+        <h4>The Bomber</h4>
+        <div class="tag">Stone</div>
+        <p>Sits still and rains <code>DAT</code> mines across the ring at a fixed stride, hoping the enemy walks into one. Small, fast, merciless — the oldest offensive pattern, seeded by Dewdney's original <em>Dwarf</em>.</p>
+      </div>
+      <div class="wcard">
+        <svg class="glyph" viewBox="0 0 44 44" aria-hidden="true"><g fill="none" stroke="#22d3ee" stroke-width="2.4"><circle cx="16" cy="22" r="6"/><path d="M22 22h16M30 16l8 6-8 6" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+        <h4>The Scanner</h4>
+        <div class="tag">Scissors</div>
+        <p>Refuses to bomb blindly. It sweeps memory looking for the enemy's signature, and only when it finds a live target does it strike that exact address. Patient and precise — it beats programs that sprawl.</p>
+      </div>
+      <div class="wcard">
+        <svg class="glyph" viewBox="0 0 44 44" aria-hidden="true"><g fill="none" stroke="#a3e635" stroke-width="2.2"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="26" y="10" width="10" height="10" rx="2"/><rect x="10" y="26" width="10" height="10" rx="2"/><rect x="28" y="28" width="8" height="8" rx="2"/></g></svg>
+        <h4>The Replicator</h4>
+        <div class="tag">Paper</div>
+        <p>Copies itself all over the core, so that killing one instance barely matters — there are dozens more. Hard to eradicate, it wins by sheer persistence. Chip Wendell's <em>Mice</em> was the first champion of this school.</p>
+      </div>
+      <div class="wcard">
+        <svg class="glyph" viewBox="0 0 44 44" aria-hidden="true"><g fill="#22d3ee"><circle cx="10" cy="22" r="4"/></g><g fill="none" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round"><path d="M16 22h6M26 22h6M36 22h4"/></g><text x="10" y="14" font-family="monospace" font-size="8" fill="#7f93ad">→→→</text></svg>
+        <h4>The Imp</h4>
+        <div class="tag">The immortal</div>
+        <p>A single <code>MOV 0, 1</code> that walks the ring copying itself forever. Nearly unkillable, rarely a winner alone — but woven into <em>imp-rings</em> it becomes a defensive backbone that forces ties out of losses.</p>
+      </div>
+      <div class="wcard">
+        <svg class="glyph" viewBox="0 0 44 44" aria-hidden="true"><g fill="none" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round"><path d="M12 14c0 8 20 8 20 16"/><path d="M12 14l-3 4M12 14l4 2"/><circle cx="32" cy="30" r="5"/></g></svg>
+        <h4>The Vampire</h4>
+        <div class="tag">Pit-trap</div>
+        <p>Doesn't kill outright — it plants <code>JMP</code> traps that hijack the enemy's execution and drag it into a captive loop of the vampire's making. Turn your opponent's own instruction pointer against them.</p>
+      </div>
+      <div class="wcard">
+        <svg class="glyph" viewBox="0 0 44 44" aria-hidden="true"><g fill="none" stroke="#f0b429" stroke-width="2.2"><rect x="8" y="8" width="28" height="28" rx="4"/><path d="M8 22h28M22 8v28" stroke-dasharray="2 3"/></g></svg>
+        <h4>The Turtle</h4>
+        <div class="tag">Denial</div>
+        <p>Wins by not losing. It hardens a small footprint, hides, and runs out the clock — forcing a draw against attackers it can't beat and stealing points from the reckless. In a ladder, a tie you engineer is a loss you refused.</p>
+      </div>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 640 260" role="img" aria-label="The Core War rock-paper-scissors triangle: Paper beats Stone, Stone beats Scissors, Scissors beats Paper">
+        <rect x="0" y="0" width="640" height="260" fill="#0b1120" rx="8"/>
+        <!-- three nodes -->
+        <g font-family="var(--mono)">
+          <g transform="translate(320,54)">
+            <circle r="34" fill="#0e1524" stroke="#a3e635" stroke-width="2"/>
+            <text y="-2" text-anchor="middle" font-size="13" fill="#a3e635">PAPER</text>
+            <text y="14" text-anchor="middle" font-size="9" fill="#7f93ad">replicator</text>
+          </g>
+          <g transform="translate(150,200)">
+            <circle r="34" fill="#0e1524" stroke="#22d3ee" stroke-width="2"/>
+            <text y="-2" text-anchor="middle" font-size="12" fill="#22d3ee">SCISSORS</text>
+            <text y="14" text-anchor="middle" font-size="9" fill="#7f93ad">scanner</text>
+          </g>
+          <g transform="translate(490,200)">
+            <circle r="34" fill="#0e1524" stroke="#ff5468" stroke-width="2"/>
+            <text y="-2" text-anchor="middle" font-size="13" fill="#ff5468">STONE</text>
+            <text y="14" text-anchor="middle" font-size="9" fill="#7f93ad">bomber</text>
+          </g>
+          <!-- arrows: paper->stone, stone->scissors, scissors->paper -->
+          <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#54657f"/></marker></defs>
+          <g stroke="#54657f" stroke-width="2" fill="none" marker-end="url(#ah)">
+            <path d="M352 78 Q450 120 470 168"/>
+            <path d="M456 208 Q320 240 184 208"/>
+            <path d="M170 166 Q220 118 292 78"/>
+          </g>
+          <text x="446" y="118" font-size="9" fill="#7f93ad">outlasts</text>
+          <text x="300" y="248" font-size="9" fill="#7f93ad" text-anchor="middle">shreds</text>
+          <text x="196" y="118" font-size="9" fill="#7f93ad">picks apart</text>
+        </g>
+      </svg>
+      <figcaption>The metagame folk wisdom: <b>Paper</b> (replicators) tends to outlast <b>Stone</b> (bombers), Stone shreds <b>Scissors</b> (scanners), and Scissors picks apart Paper. No archetype is safe — which is exactly why the game never got solved.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= ROBOTS ================= -->
+  <section class="era" id="robots">
+    <div class="era-head">
+      <span class="era-year lime">1981</span>
+      <h2 class="era-title">The robots leave the core</h2>
+      <span class="era-sub">RobotWar · CRobots · Robocode</span>
+    </div>
+
+    <p>Core War kept the fight abstract — code against code in bare memory. A parallel tradition asked a friendlier question: what if your program drove a <em>robot</em>? Same idea, new metaphor. You still write autonomous logic and set it loose with no controls; now it has a body, a gun, and a radar, and you watch it roll around an arena.</p>
+
+    <figure>
+      <svg viewBox="0 0 640 240" role="img" aria-label="Two programmed robot tanks in an arena, each sweeping a radar arc and firing">
+        <rect x="0" y="0" width="640" height="240" fill="#0b1120" rx="8"/>
+        <rect x="14" y="14" width="612" height="212" rx="6" fill="none" stroke="#1b2740"/>
+        <text x="26" y="34" font-family="var(--mono)" font-size="11" fill="#54657f" letter-spacing="2">ARENA</text>
+        <!-- radar arcs -->
+        <path d="M170 130 L280 74 A128 128 0 0 1 300 150 Z" fill="rgba(34,211,238,.10)" stroke="none"/>
+        <path d="M470 120 L360 170 A120 120 0 0 1 350 96 Z" fill="rgba(244,114,182,.10)" stroke="none"/>
+        <!-- tank A -->
+        <g transform="translate(170,130)">
+          <rect x="-20" y="-14" width="40" height="28" rx="5" fill="#0e1524" stroke="#22d3ee" stroke-width="2"/>
+          <rect x="-26" y="-18" width="8" height="36" rx="2" fill="#111a2b" stroke="#22d3ee"/>
+          <rect x="18" y="-18" width="8" height="36" rx="2" fill="#111a2b" stroke="#22d3ee"/>
+          <rect x="10" y="-3" width="34" height="6" rx="2" fill="#22d3ee"/>
+          <text y="34" text-anchor="middle" font-family="var(--mono)" font-size="10" fill="#22d3ee">bot.rb</text>
+        </g>
+        <!-- tank B -->
+        <g transform="translate(470,120)">
+          <rect x="-20" y="-14" width="40" height="28" rx="5" fill="#0e1524" stroke="#f472b6" stroke-width="2"/>
+          <rect x="-26" y="-18" width="8" height="36" rx="2" fill="#111a2b" stroke="#f472b6"/>
+          <rect x="18" y="-18" width="8" height="36" rx="2" fill="#111a2b" stroke="#f472b6"/>
+          <rect x="-44" y="-3" width="34" height="6" rx="2" fill="#f472b6"/>
+          <text y="34" text-anchor="middle" font-family="var(--mono)" font-size="10" fill="#f472b6">enemy.class</text>
+        </g>
+        <!-- shell -->
+        <circle cx="330" cy="128" r="4" fill="#f0b429"/>
+        <circle cx="300" cy="132" r="2.5" fill="#f0b429" opacity=".6"/>
+      </svg>
+      <figcaption>The robot lineage keeps the rule — <b>no hands on the controls</b> — and gives the combatant a body. Scan for the enemy, aim, fire, dodge; every decision comes from the code you wrote and shipped.</figcaption>
+    </figure>
+
+    <div class="mgrid">
+      <div class="mcard">
+        <div class="yr">1981</div>
+        <h4>RobotWar</h4>
+        <p>Born on the PLATO network and published by Muse Software for the Apple II. You programmed a tank in a simple language and pitted it against others — the first robot-combat programming game to reach home computers.</p>
+      </div>
+      <div class="mcard">
+        <div class="yr">1985</div>
+        <h4>CRobots</h4>
+        <p><b>Tom Poindexter</b>'s shareware classic. Robots were programmed in a stripped-down dialect of <b>C</b> — for many hobbyists, the first time writing real-looking code felt like play. Spawned CROBOTS clones for decades.</p>
+      </div>
+      <div class="mcard">
+        <div class="yr">2001</div>
+        <h4>Robocode</h4>
+        <p><b>Mathew Nelson</b>'s open-source hit, released through IBM. You write a battle tank in <b>Java</b>, and it fights in real time. It became a beloved way to <em>learn</em> Java — programming games as a teaching tool, at scale.</p>
+      </div>
+    </div>
+
+    <p>These games did something quietly important: they turned a niche mainframe pastime into a way to learn to program. A teenager who would never touch Redcode might spend a weekend teaching a Robocode tank to circle-strafe — and come away, without noticing, fluent in loops, state, and events. The battle was the bait; the programming was the point.</p>
+  </section>
+
+  <!-- ================= MODERN ================= -->
+  <section class="era" id="modern">
+    <div class="era-head">
+      <span class="era-year">Today</span>
+      <h2 class="era-title">The modern age</h2>
+      <span class="era-sub">browsers · assembly puzzles · AI arenas</span>
+    </div>
+
+    <p>The genre never died — it kept finding new hosts. Cheap compute and the browser let it explode outward into whole new shapes, from persistent multiplayer worlds to meticulous assembly puzzles to the AI-agent arenas that now train the frontier.</p>
+
+    <div class="mgrid">
+      <div class="mcard"><div class="yr">2015</div><h4>TIS-100 &amp; the Zachtronics school</h4><p>Zachtronics turned "the assembly language game you never asked for" into a genre of its own — <em>TIS-100</em>, <em>Shenzhen I/O</em>, <em>EXAPUNKS</em>. Not combat, but the same joy: an austere machine, a hard constraint, an elegant program.</p></div>
+      <div class="mcard"><div class="yr">2016</div><h4>Screeps</h4><p>A persistent MMO where your only interface is JavaScript. Your colony keeps running on the server whether you're watching or asleep — Core War's autonomy stretched across a living, always-on world.</p></div>
+      <div class="mcard"><div class="yr">MIT</div><h4>Battlecode</h4><p>MIT's storied AI programming competition. Teams code armies that fight in a real-time strategy engine — a direct academic heir to the "write an agent, set it loose, may the best logic win" tradition.</p></div>
+      <div class="mcard"><div class="yr">web</div><h4>CodinGame &amp; Leek Wars</h4><p>Browser arenas where thousands submit bot code to climb bot-vs-bot leaderboards, in a dozen languages. The tournament ladder of 1986, now global and always open.</p></div>
+      <div class="mcard"><div class="yr">2019</div><h4>Bitburner &amp; hackmud</h4><p>Idle/hacking games where scripting <em>is</em> the gameplay — you automate your way to power in JavaScript. The programming isn't a metaphor for the game; it's the whole loop.</p></div>
+      <div class="mcard"><div class="yr">now</div><h4>Self-play &amp; agent arenas</h4><p>The deepest echo: modern AI is trained by pitting agents against copies of themselves and keeping what wins. Darwin's core idea — release autonomous programs, let survival do the judging — turns out to be how machines now learn.</p></div>
+    </div>
+
+    <p class="pull">Every one of these is the same wish, restated for a new decade: <span>write a mind, let it go, and find out if it was any good.</span></p>
+  </section>
+
+  <!-- ================= ODE ================= -->
+  <section class="era" id="ode">
+    <div class="era-head">
+      <span class="era-year rose">§</span>
+      <h2 class="era-title">Why it endures</h2>
+      <span class="era-sub">the ode</span>
+    </div>
+
+    <p>Why has this one idea kept coming back for sixty-five years, when whole genres of games have been born and buried in the meantime? A few reasons, and they are worth loving.</p>
+
+    <p><b>It is honest.</b> Once your warrior is loaded, you cannot help it. No reflexes, no clutch save, no second-guessing the joystick. Every good thing that happens was your foresight; every death was your blind spot, revealed in public. Few games hold up so clean a mirror to how you actually think.</p>
+
+    <p><b>It is deterministic, so it is fair.</b> Give the machine the same two programs and the same starting seed and it produces the same battle every time — which means a result can be <em>re-checked</em>, a bug can be <em>reproduced</em>, and a victory can never be luck you can't account for. The whole drama is a pure function of the code. That is a rare and beautiful property for a game to have.</p>
+
+    <p><b>It is watchable.</b> This is the quiet magic. Abstract code becomes a moving picture — pointers streaking around a ring, mines blooming, a replicator flooding the core while a scanner hunts it cell by cell. You are, in the most literal sense, <em>watching a program think</em>. Programmers spend their lives imagining execution in their heads; here it is on the screen, dancing.</p>
+
+    <p><b>And it is bottomless.</b> Twelve instructions, or twenty, and no one ever runs out of ideas. Darwin ended in weeks because one arena had one answer; the genre as a whole never ends, because every time someone builds the perfect predator, someone else builds the thing that eats it. It is evolution staged in silicon, and evolution, famously, does not stop.</p>
+  </section>
+
+  <!-- ================= NULLSECTOR CTA ================= -->
+  <div class="cta">
+    <div class="kicker" style="margin-bottom:12px">2026 · this game</div>
+    <h3>Where NULLSECTOR stands in the line</h3>
+    <p>NULLSECTOR is a deliberately approachable descendant of Core War, built for the browser. It keeps the sacred parts — one ring of memory, addresses relative to <em>where you are right now</em>, and a single rule for death — and throws out the cruelty: no multiprocessing, no addressing-mode soup, just one walker, four registers, and twelve readable instructions. Write a daemon, watch it fight, and duel the ghosts of every pilot who came before you.</p>
+    <a class="enter" href="index.html">◤ ENTER THE SECTOR →</a>
+  </div>
+
+  <footer class="doc">
+    <div style="margin-bottom:8px">◤ NULLSECTOR — <a href="index.html">back to the game</a></div>
+    <div>A core-combat programming game · in the lineage of Darwin, Core War &amp; Robocode</div>
+  </footer>
+
+</article>
+</div>
+
+<script>
+// ---- procedural SVG art (matches the game's zero-asset ethos) ----
+(function(){
+  const svgns = 'http://www.w3.org/2000/svg';
+  const mk = (n, a) => { const e = document.createElementNS(svgns, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+  // Hero ring: 64 tick-cells around a circle
+  const cells = document.getElementById('cells');
+  if (cells){
+    const cx = 150, cy = 150, R = 118, N = 64;
+    const lit = new Set([3,4,5,18,19,31,32,33,44,45,55,56,57,58]); // "code"
+    const mines = new Set([12, 27, 49, 61]);
+    for (let i = 0; i < N; i++){
+      const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+      const x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
+      let fill = '#16223a';
+      if (mines.has(i)) fill = '#ff5468';
+      else if (lit.has(i)) fill = i % 2 ? '#22d3ee' : '#f472b6';
+      const c = mk('rect', { x: x - 3.4, y: y - 3.4, width: 6.8, height: 6.8, rx: 1.6, fill,
+        transform: `rotate(${(i / N) * 360} ${x} ${y})`, opacity: (mines.has(i) || lit.has(i)) ? 0.95 : 0.6 });
+      cells.appendChild(c);
+    }
+  }
+
+  // Darwin strip: a row of ~40 memory cells, two species interleaved
+  const strip = document.getElementById('darwin-strip');
+  if (strip){
+    const n = 40, w = 13, gap = 2, x0 = 20, y = 60, h = 44;
+    const pat = [1,1,0,2,0,0,1,1,1,0,2,0,1,0,0,2,2,0,1,1,0,0,2,0,1,1,1,0,0,2,0,1,0,2,2,0,1,1,0,2];
+    for (let i = 0; i < n; i++){
+      const t = pat[i];
+      const fill = t === 1 ? '#22d3ee' : t === 2 ? '#f472b6' : '#0e1524';
+      const stroke = t ? 'none' : '#1b2740';
+      strip.appendChild(mk('rect', { x: x0 + i * (w + gap), y, width: w, height: h, rx: 2, fill, stroke, 'stroke-width': 1, opacity: t ? 0.9 : 1 }));
+    }
+  }
+
+  // MARS core dump: 32x14 grid
+  const cd = document.getElementById('coredump');
+  if (cd){
+    const cols = 32, rows = 14, s = 17, x0 = 20, y0 = 42;
+    // deterministic pseudo-random
+    let seed = 1337; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    for (let r = 0; r < rows; r++){
+      for (let c = 0; c < cols; c++){
+        const v = rnd();
+        let fill = '#0e1524', stroke = '#141d30';
+        // two clusters of warrior code + scattered mines
+        const inA = (r >= 2 && r <= 5 && c >= 3 && c <= 11) && v > 0.35;
+        const inB = (r >= 8 && r <= 11 && c >= 20 && c <= 28) && v > 0.4;
+        if (inA) fill = '#22d3ee';
+        else if (inB) fill = '#f472b6';
+        else if (v > 0.94) fill = '#ff5468';
+        const rect = mk('rect', { x: x0 + c * s, y: y0 + r * s, width: s - 3, height: s - 3, rx: 2, fill, stroke, 'stroke-width': 1 });
+        if (fill !== '#0e1524') rect.setAttribute('opacity', '0.92');
+        cd.appendChild(rect);
+      }
+    }
+    // two live pointers
+    cd.appendChild(mk('circle', { cx: x0 + 6 * s + (s - 3) / 2, cy: y0 + 3 * s + (s - 3) / 2, r: 7, fill: 'none', stroke: '#a3e635', 'stroke-width': 2 }));
+    cd.appendChild(mk('circle', { cx: x0 + 24 * s + (s - 3) / 2, cy: y0 + 10 * s + (s - 3) / 2, r: 7, fill: 'none', stroke: '#a3e635', 'stroke-width': 2 }));
+  }
+})();
+</script>
+<style>
+/* orbit animation for the hero IPs */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinr{to{transform:rotate(-360deg)}}
+.hero .ip1{animation:spin 9s linear infinite}
+.hero .ip2{animation:spinr 13s linear infinite}
+</style>
+</body>
+</html>
