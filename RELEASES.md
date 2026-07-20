@@ -1,5 +1,24 @@
 # NULLSECTOR — Releases
 
+## 2026-07-20 — Fix inert play button + onboarding examples
+- **What deployed:** <https://nullsector.levelbrook.com> — the central ▶ play button now
+  actually runs the game, and each script archetype is one click away in the Manual panel.
+- **Changed:** the transport ▶/step/back/end buttons called `sector.toggle()`/`stepFwd()`
+  which early-return when no battle is loaded — so on a fresh page (Manual mode) pressing
+  play did nothing ("the game does not go"). A battle only loaded after clicking FIGHT in
+  Arena/Gauntlet. Now pressing play with nothing loaded assembles the current daemon (or
+  falls back to the DRIFTER example if it has errors), fights a lively opponent, and plays
+  it. Added guards so `stepFwd/stepBack/toEnd` can't throw on a null result. Added one-click
+  example loaders (DRIFTER bomber / SEEKER scanner / TURTLE survivor) with a "then press ▶"
+  hint to the Manual panel.
+- **How:** commit `e1f9137`, pushed to `tachyurgy/nullsector`; on Box B `git pull` +
+  `docker build` + `docker run` + `kamal-proxy deploy` (the documented redeploy path).
+- **Verified:** `node server/selftest.mjs` = 10 passed/0 failed. Real-browser (cached
+  Playwright Chromium) run against the built files: fresh load has DRIFTER in the editor,
+  pressing ▶ advances cycles 0→312 and flips the button to pause, example buttons swap the
+  daemon, **0 console/page errors**. Live: HTTP 200, served app.js contains `_playPause`,
+  index has the 3 example buttons.
+
 ## 2026-07-18 — "Ghosts in the Machine" — genre-history article
 - **Live:** <https://nullsector.levelbrook.com/history.html> — a long-form, illustrated
   history of the programming battle game ("an ode to the genre"), linked from the game's
