@@ -142,6 +142,8 @@ p{margin:0 0 10px} code{font-family:var(--mono); color:var(--you); background:rg
 .isa-doc{font-size:11.5px; color:var(--dim)}
 .strat{margin:0; padding-left:18px} .strat li{margin-bottom:6px; color:var(--dim)}
 .strat b{color:var(--text)}
+.examples{display:flex; flex-wrap:wrap; gap:8px; margin-top:4px}
+.examples .btn.small{margin-top:0}
 .fld{display:flex; flex-direction:column; gap:6px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin:6px 0 12px}
 .input{font-family:var(--mono); font-size:13px; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:9px 11px; text-transform:none; letter-spacing:normal}
 .input:focus{outline:none; border-color:var(--line2); box-shadow:0 0 0 3px rgba(34,211,238,.1)}

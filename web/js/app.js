@@ -123,10 +123,10 @@ const App = {
   // ---- playback + editor controls ----
   _wireControls() {
     $('#wname').addEventListener('input', () => store.set('last', { name: $('#wname').value, source: this.editor.get() }));
-    $('#btn-play').addEventListener('click', () => this.sector.toggle());
-    $('#btn-step').addEventListener('click', () => this.sector.stepFwd());
-    $('#btn-back').addEventListener('click', () => this.sector.stepBack());
-    $('#btn-end').addEventListener('click', () => this.sector.toEnd());
+    $('#btn-play').addEventListener('click', () => this._playPause());
+    $('#btn-step').addEventListener('click', () => { if (this._ensureBattle()) this.sector.stepFwd(); });
+    $('#btn-back').addEventListener('click', () => { if (this._ensureBattle()) this.sector.stepBack(); });
+    $('#btn-end').addEventListener('click', () => { if (this._ensureBattle()) this.sector.toEnd(); });
     $('#scrub').addEventListener('input', (e) => this.sector.seek(+e.target.value));
     document.querySelectorAll('[data-speed]').forEach((b) => b.addEventListener('click', () => {
       this.sector.setSpeed(+b.dataset.speed);
@@ -141,8 +141,53 @@ const App = {
     document.addEventListener('click', () => { $('#load-menu').hidden = true; });
     $('#btn-share').addEventListener('click', () => this.share());
     $('#btn-save').addEventListener('click', () => this.saveNamed());
+
+    // one-click example loaders in the Manual panel
+    const exNames = { bomber: 'drifter', scanner: 'seeker', blank: 'turtle' };
+    document.querySelectorAll('[data-example]').forEach((b) => b.addEventListener('click', () => {
+      const key = b.dataset.example;
+      this._loadSrc(exNames[key] || key, STARTERS[key]);
+      toast('Loaded — now press ▶ under the sector to watch it fight.');
+    }));
   },
   _renderSoundBtn() { $('#sound').textContent = this.sfx.on ? '🔊' : '🔇'; },
+
+  // The central ▶ transport button. If a battle is already loaded, play/pause it.
+  // Otherwise kick off a demo battle so the button always DOES something — the #1
+  // onboarding trap was pressing play on a fresh page and having nothing happen.
+  _playPause() {
+    if (this.sector.result) { this.sector.toggle(); return; }
+    this.demo();
+  },
+
+  // Ensure a battle is loaded before a step/scrub action; if not, run a demo one.
+  // Returns true if the sector already had a battle (so the caller can act now),
+  // false if we just kicked off a demo (which starts playing on its own).
+  _ensureBattle() {
+    if (this.sector.result) return true;
+    this.demo();
+    return false;
+  },
+
+  // Assemble the current daemon and fight a lively opponent, then play it.
+  // If the editor doesn't compile, fall back to a starter so the game still runs.
+  demo() {
+    let src = this.editor.get();
+    let r = assemble(src);
+    let youName = ($('#wname').value || 'YOU').toUpperCase().slice(0, 10);
+    if (!r.ok) {
+      // Load the DRIFTER example so pressing play always shows a real battle.
+      this._loadSrc('drifter', STARTERS.bomber);
+      r = assemble(STARTERS.bomber);
+      youName = 'DRIFTER';
+      toast('Your daemon had errors — running the DRIFTER example battle. Edit the code and press ▶ again.');
+    }
+    // In Arena, honour the chosen opponent; otherwise pick a busy foe to watch.
+    const foeId = (this.mode === 'arena' && this.opponent) ? this.opponent : 'seeker';
+    const foe = GAUNTLET.find((g) => g.id === foeId) || GAUNTLET.find((g) => g.id !== 'sentinel') || GAUNTLET[0];
+    const foeProg = assemble(foe.source).program;
+    this.playBattle(r.program, foeProg, { you: youName, foe: foe.name });
+  },
 
   _onSector(s) {
     // scrubber + counters

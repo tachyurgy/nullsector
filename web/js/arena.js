@@ -107,9 +107,9 @@ export class SectorView {
   pause() { this.playing = false; if (this._raf) cancelAnimationFrame(this._raf); this._raf = null; }
   toggle() { this.playing ? this.pause() : this.play(); }
 
-  stepFwd() { this.pause(); if (this.step < this.result.journal.length) { this._advance(); this.draw(); this._emit(); } }
-  stepBack() { this.pause(); this.seek(this.step - 1); }
-  toEnd() { this.pause(); this.seek(this.result.journal.length); }
+  stepFwd() { if (!this.result) return; this.pause(); if (this.step < this.result.journal.length) { this._advance(); this.draw(); this._emit(); } }
+  stepBack() { if (!this.result) return; this.pause(); this.seek(this.step - 1); }
+  toEnd() { if (!this.result) return; this.pause(); this.seek(this.result.journal.length); }
 
   _advance() {
     const tr = this.result.journal[this.step];
